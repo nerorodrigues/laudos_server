@@ -1,0 +1,3 @@
+type Mutation{
+    signIn(userName: String!, password: String!): AuthUser
+}

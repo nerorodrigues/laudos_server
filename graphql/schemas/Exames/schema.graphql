@@ -1,0 +1,33 @@
+scalar Date
+
+input ExameInput{
+    protocolo: String!
+    nome: String!
+    dataExame: Date!
+    possuiMarcapasso: Boolean
+    observacoes: String
+    exameFile: Upload!
+}
+
+type Exame{
+    id:ID!
+    protocolo: String!
+    nome: String!
+    dataExame: Date!
+}
+
+type Query{
+    listarExames: [Exame]
+}
+
+type File{
+    contentType:String!
+    fileName:String!
+    extension:String!
+    content:String!
+}
+
+type Mutation{
+    salvarExame(exame: ExameInput!): Exame! #@isLoggedIn(role: USER)
+    salvarLaudo(laudo: Upload!):
+}
