@@ -1,2 +1,0 @@
-# laudos
-laudos_server

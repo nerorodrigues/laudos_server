@@ -45,6 +45,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
+  "engines": {
+    "node": "12.16.x"
+  },
   "author": "Nero Rodrigues Costa Luz",
   "license": "ISC"
 }
