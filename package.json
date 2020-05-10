@@ -46,7 +46,7 @@
     "start": "node server.js"
   },
   "engines": {
-    "node": "12.16.x"
+    "node": "12.16.0"
   },
   "author": "Nero Rodrigues Costa Luz",
   "license": "ISC"
