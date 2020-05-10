@@ -5,7 +5,7 @@ const cors = require('cors')
 const session = require('express-session')
 
 const corsOptions = {
-  origin: 'http://localhost:3001',
+  origin: '*',
   credentials: true
 }
 const ConfigServer = async () => {
