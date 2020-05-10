@@ -19,7 +19,7 @@ const ConfigServer = async () => {
 
   // ConfigDownloadEndpoint.configureDownloadService(middleware, db);
 
-  app.get("/home",(req,res)=>{
+  app.get("/",(req,res)=>{
     return res.send("Hello");
   })
 
