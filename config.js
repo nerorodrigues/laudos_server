@@ -5,17 +5,17 @@ const cors = require('cors')
 const session = require('express-session')
 
 const corsOptions = {
-  origin: '*',
+  origin: 'http://localhost:3000',
   credentials: true
 }
 const ConfigServer = async () => {
   var app = express();
 
   var db = await CreateDatabase();
-  app.use(cors());
+  app.use(cors(corsOptions));
   app.use(express.urlencoded({ extended: true }))
 
-  var middleware = await GraphQL.registerGraphQL(app, '/graphql', db, null /*corsOptions*/, true);
+  var middleware = await GraphQL.registerGraphQL(app, '/graphql', db, corsOptions, true);
 
   ConfigDownloadEndpoint.configureDownloadService(middleware, db);
 
