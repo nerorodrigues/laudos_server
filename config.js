@@ -15,7 +15,7 @@ const ConfigServer = async () => {
   app.use(cors());
   app.use(express.urlencoded({ extended: true }))
 
-  var middleware = await GraphQL.registerGraphQL(app, '/graphql', db, corsOptions, true);
+  var middleware = await GraphQL.registerGraphQL(app, '/graphql', db, null /*corsOptions*/, true);
 
   ConfigDownloadEndpoint.configureDownloadService(middleware, db);
 
