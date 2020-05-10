@@ -1,4 +1,6 @@
+const path = require('path');
 const express = require("express");
+
 const { CreateDatabase } = require("./db");
 const { GraphQL, ConfigDownloadEndpoint } = require('./lib');
 const cors = require('cors')
@@ -10,7 +12,7 @@ const corsOptions = {
 }
 const ConfigServer = async () => {
   var app = express();
-
+  
   var db = await CreateDatabase();
   app.use(cors(corsOptions));
   app.use(express.urlencoded({ extended: true }))
@@ -19,10 +21,11 @@ const ConfigServer = async () => {
 
   ConfigDownloadEndpoint.configureDownloadService(middleware, db);
 
-  app.get("/", (req, res) => {
-    return res.send("Hello");
-  })
-
+  app.use(express.static(path.join(__dirname, 'public')));
+  app.get('/', function (req, res) {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  });
+  
   return app;
 };
 
