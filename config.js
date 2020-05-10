@@ -11,15 +11,15 @@ const corsOptions = {
 const ConfigServer = async () => {
   var app = express();
 
-  // var db = await CreateDatabase();
-  // app.use(cors(corsOptions));
-  // app.use(express.urlencoded({ extended: true }))
+  var db = await CreateDatabase();
+  app.use(cors(corsOptions));
+  app.use(express.urlencoded({ extended: true }))
 
-  // var middleware = await GraphQL.registerGraphQL(app, '/graphql', db, corsOptions, true);
+  var middleware = await GraphQL.registerGraphQL(app, '/graphql', db, corsOptions, true);
 
-  // ConfigDownloadEndpoint.configureDownloadService(middleware, db);
+  ConfigDownloadEndpoint.configureDownloadService(middleware, db);
 
-  app.get("/",(req,res)=>{
+  app.get("/", (req, res) => {
     return res.send("Hello");
   })
 

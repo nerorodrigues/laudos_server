@@ -4,7 +4,7 @@ const { ConfigServer } = require('./config');
 //const dev = process.env.NODE_ENV !== 'production'
 // const app = next({ dev });
 // const handle = app.getRequestHandler()
-const port = process.env.PORT || "3000";
+const app_port = process.env.PORT || "3000";
 const launchServer = async (port) => {
     var server = await ConfigServer();
     // server.get('*', (req, res) => {
@@ -16,7 +16,7 @@ const launchServer = async (port) => {
 }
 
 // app.prepare().then(() => {
-    launchServer(port).then(({ server, port }) => {
+    launchServer(app_port).then(({ server, port }) => {
 
         server.use('/local', (req, res) => {
             res.type('application/json');
