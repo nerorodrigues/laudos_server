@@ -12,7 +12,7 @@ const ConfigServer = async () => {
   var app = express();
 
   var db = await CreateDatabase();
-  app.use(cors(corsOptions));
+  app.use(cors());
   app.use(express.urlencoded({ extended: true }))
 
   var middleware = await GraphQL.registerGraphQL(app, '/graphql', db, corsOptions, true);
