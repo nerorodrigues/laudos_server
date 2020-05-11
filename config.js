@@ -28,7 +28,7 @@ const ConfigServer = async () => {
   });
 
   app.get('/info', (req, res) => {
-    res.json(JSON.stringify(process.env));
+    res.json(process.env);
   });
 
 
