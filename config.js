@@ -7,7 +7,8 @@ const cors = require('cors')
 const session = require('express-session')
 
 const corsOptions = {
-  origin: 'http://localhost:3000',
+  //origin: 'http://localhost:3000',
+  origin: 'https://laudos.herokuapp.com',
   credentials: true
 }
 const ConfigServer = async () => {
@@ -25,7 +26,7 @@ const ConfigServer = async () => {
   app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
   });
-  
+
   return app;
 };
 
