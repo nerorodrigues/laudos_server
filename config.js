@@ -7,8 +7,7 @@ const cors = require('cors')
 const session = require('express-session')
 
 const corsOptions = {
-  //origin: 'http://localhost:3000',
-  origin: 'https://laudos.herokuapp.com',
+  origin: process.env.CorsOrigin || 'http://localhost:3000',
   credentials: true
 }
 const ConfigServer = async () => {
