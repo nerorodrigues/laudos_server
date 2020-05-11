@@ -13,7 +13,7 @@ const corsOptions = {
 }
 const ConfigServer = async () => {
   var app = express();
-  
+
   var db = await CreateDatabase();
   app.use(cors(corsOptions));
   app.use(express.urlencoded({ extended: true }))
@@ -23,9 +23,14 @@ const ConfigServer = async () => {
   ConfigDownloadEndpoint.configureDownloadService(middleware, db);
 
   app.use(express.static(path.join(__dirname, 'public')));
-  app.get('/', function (req, res) {
+  app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
   });
+
+  app.get('/info', (req, res) => {
+    res.json(JSON.stringify(process.env));
+  });
+
 
   return app;
 };
