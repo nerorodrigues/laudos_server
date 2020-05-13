@@ -17,19 +17,6 @@ module.exports = {
                 });
                 return result;
             },
-            // upload: async (root, args, context) => {
-            //     return args.file.then(file => {
-            //         var fileNAme = file;
-            //         return "";
-            //     });
-            // }
-            upload: async (parent, args, { user, dbClient }) => {
-                var { createReadStream, filename, mimetype, encoding } = await args.image
-                
-                return {
-                    userName: 'Nero'
-                };
-            }
         }
     }
 }

@@ -30,18 +30,14 @@ class IsLoggedIn extends SchemaDirectiveVisitor {
         if (!requiredAuth)
           return resolve.call(this, root, args, context, ...rest);
 
-        if (!user || !jwt.verify(user, "nero"))
+        if (!user)
           throw new Error("User not Authenticated");
 
-
-
-        var payload = jwt.decode(user, "nero");
-
-        var user = dbClient.collection("user").findOne({
-          userName: payload.userName
+        var user = await dbClient.collection("user").findOne({
+          userName: user.userName
         });
 
-        if (user.Schema != this.args.role)
+        if (user.schema != requiredAuth)
           throw new Error("Not Authorized.");
         return resolve.call(this, root, args, context, ...rest);
       };

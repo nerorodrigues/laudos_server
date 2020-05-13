@@ -5,5 +5,4 @@ type Query{
 
 type Mutation{
     createUser(user: UserInput!): User!
-    upload(image: Upload!): User!
 }

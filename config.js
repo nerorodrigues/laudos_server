@@ -7,7 +7,7 @@ const cors = require('cors')
 const session = require('express-session')
 
 const corsOptions = {
-  origin: process.env.CorsOrigin || 'http://localhost:3000',
+  origin: process.env.CorsOrigin || 'http://localhost:3001',
   credentials: true
 }
 const ConfigServer = async () => {
