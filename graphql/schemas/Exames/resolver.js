@@ -1,11 +1,14 @@
-const path = require('path');
-const os = require('os');
-const shortid = require('shortid');
+// const path = require('path');
+// const os = require('os');
+// const shortid = require('shortid');
 const { GridFSBucket } = require('mongodb');
-const { createWriteStream, unlink } = require('fs');
-const convertToBase64 = async (buffer) => {
-    return buffer.toString('Base64');
-};
+const { PubSub } = require('apollo-server-express')
+
+const pubSub = new PubSub();
+// const { createWriteStream, unlink } = require('fs');
+// const convertToBase64 = async (buffer) => {
+//     return buffer.toString('Base64');
+// };
 
 // const salvarStream = async (stream, createReadStream) => {
 
@@ -47,10 +50,17 @@ const convertToBase64 = async (buffer) => {
 
 // }
 
+const LAUDO_SALVO = 'LAUDO_SALVO';
+
 module.exports = {
     resolver: {
+        Subscription: {
+            laudoSalvo: {
+                subscribe: async() => await pubSub.asyncIterator([LAUDO_SALVO])
+            }
+        },
         Query: {
-            listarExames: async (root, args, { user, dbClient }, info) => {
+            listarExames: async(root, args, { user, dbClient }, info) => {
                 var exameCollection = await dbClient.collection('exames');
 
                 var result;
@@ -68,7 +78,7 @@ module.exports = {
             }
         },
         Mutation: {
-            salvarExame: async (root, { exame }, { user, dbClient }) => {
+            salvarExame: async(root, { exame }, { user, dbClient }) => {
                 var exameCollection = dbClient.collection('exames');
                 var { createReadStream, stream, filename, mimetype, encoding } = await exame.exameFile;
 
@@ -98,13 +108,20 @@ module.exports = {
 
                         stream.pipe(uploadStream);
                     });
-                return {
+                var laudoResult = {
                     id: result.insertedId,
                     nome: exame.nome,
                     protocolo: exame.protocolo,
                     dataExame: exame.dataExame,
                     dataCadastro: exame.dataCadastro
                 };
+                pubSub.publish(LAUDO_SALVO, {
+                    laudoSalvo: laudoResult,
+                    payload: {
+                        laudoSalvo: laudoResult
+                    }
+                });
+                return laudoResult;
             }
         }
     }

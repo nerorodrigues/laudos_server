@@ -33,6 +33,7 @@
     "express-session": "^1.17.1",
     "graphql": "^15.0.0",
     "mongodb": "^3.5.7",
-    "schemaglue": "^4.0.4"
+    "schemaglue": "^4.0.4",
+    "subscriptions-transport-ws": "^0.9.16"
   }
 }

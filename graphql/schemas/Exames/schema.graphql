@@ -1,12 +1,12 @@
 scalar Date
-
+scalar FileUpload
 input ExameInput{
     protocolo: String!
     nome: String!
     dataExame: Date!
     possuiMarcapasso: Boolean
     observacoes: String
-    exameFile: Upload!
+    exameFile: FileUpload!
 }
 
 type Exame{
@@ -29,5 +29,9 @@ type File{
 
 type Mutation{
     salvarExame(exame: ExameInput!): Exame! @isLoggedIn(role: USER)
-    salvarLaudo(laudo: Upload!): String!
+    salvarLaudo(laudo: FileUpload!): String!
+}
+
+type Subscription{
+    laudoSalvo(id: ID): Exame!
 }
