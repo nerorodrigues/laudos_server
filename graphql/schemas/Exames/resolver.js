@@ -49,6 +49,22 @@ const pubSub = new PubSub();
 //     return data;
 
 // }
+const getExames = async (companyId, dbClient, getAll) => {
+    var exameCollection = await dbClient.collection('exames');
+    var filter = companyId ? { companyId: companyId } : {};
+    if (exameCollection)
+        return exameCollection.find(filter).map(value => {
+            return {
+                id: value._id,
+                protocolo: value.protocolo,
+                nome: value.nome,
+                dataExame: value.dataExame,
+                dataCadastro: value.dataCadastro,
+                exameUrl: `${process.env.CorsOrigin || 'http://localhost:3001'}/download?id=${value._id}&download=exame`
+            };
+        }).toArray();
+    return;
+}
 
 const LAUDO_SALVO = 'LAUDO_SALVO';
 
@@ -56,31 +72,21 @@ module.exports = {
     resolver: {
         Subscription: {
             laudoSalvo: {
-                subscribe: async() => await pubSub.asyncIterator([LAUDO_SALVO])
+                subscribe: async () => await pubSub.asyncIterator([LAUDO_SALVO])
             }
         },
         Query: {
-            listarExames: async(root, args, { user, dbClient }, info) => {
-                var exameCollection = await dbClient.collection('exames');
-
-                var result;
-                if (exameCollection)
-                    result = await exameCollection.find().map(value => {
-                        return {
-                            id: value._id,
-                            protocolo: value.protocolo,
-                            nome: value.nome,
-                            dataExame: value.dataExame,
-                            dataCadastro: new Date().toLocaleString()
-                        };
-                    }).toArray();
-                return result
+            listarExames: async (root, args, { user, dbClient }, info) => {
+                return getExames(user.companyId, dbClient, false);
+            },
+            listarExamesPorCliente: async (root, args, { dbClient }, info) => {
+                return getExames(args.companyId, dbClient, true);
             }
         },
         Mutation: {
-            salvarExame: async(root, { exame }, { user, dbClient }) => {
+            salvarExame: async (root, { exame }, { user, dbClient }) => {
                 var exameCollection = dbClient.collection('exames');
-                var { createReadStream, stream, filename, mimetype, encoding } = await exame.exameFile;
+                var { createReadStream, filename, mimetype, encoding } = await exame.exameFile;
 
                 var gridFs = new GridFSBucket(dbClient, {
                     bucketName: 'exames'
@@ -91,13 +97,16 @@ module.exports = {
                         nome: exame.nome,
                         protocolo: exame.protocolo,
                         dataExame: exame.dataExame,
+                        dataCadastro: new Date().toLocaleString('pt-BR', { day: 'numeric', month: 'numeric', year: 'numeric' }),
+                        clienteId: user.id,
+                        companyId: user.companyId,
                         possuiMarcapasso: exame.possuiMarcapasso,
                         observacoes: exame.observacoes
                     });
                 if (result)
                     await new Promise((resolve, reject) => {
                         var uploadStream = gridFs.openUploadStreamWithId(result.insertedId, filename);
-
+                        var stream = createReadStream();
                         uploadStream.on('finish', resolve);
 
                         uploadStream.on('error', (error) => {
@@ -113,7 +122,9 @@ module.exports = {
                     nome: exame.nome,
                     protocolo: exame.protocolo,
                     dataExame: exame.dataExame,
-                    dataCadastro: exame.dataCadastro
+                    dataCadastro: exame.dataCadastro,
+                    exameUrl: `${process.env.CorsOrigin || 'http://localhost:3001'}/download?id=${result.insertedId}&download=exame`,
+                    laudoUrl: ''
                 };
                 pubSub.publish(LAUDO_SALVO, {
                     laudoSalvo: laudoResult,

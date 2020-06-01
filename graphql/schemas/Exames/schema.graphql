@@ -14,10 +14,16 @@ type Exame{
     protocolo: String!
     nome: String!
     dataExame: Date!
+    dataCadastro: Date,
+    exameUrl: String,
+    laudoUrl: String,
+    possuiMarcapasso: Boolean
+    observacoes: String
 }
 
 type Query{
-    listarExames: [Exame] @isLoggedIn(role: USER)
+    listarExames: [Exame] @isLoggedIn(role: "LISTAR_EXAME")
+    listarExamesPorCliente(companyId: ID): [Exame] #@isLoggedIn(role:"LISTAR_EXAME")
 }
 
 type File{
@@ -28,8 +34,8 @@ type File{
 }
 
 type Mutation{
-    salvarExame(exame: ExameInput!): Exame! @isLoggedIn(role: USER)
-    salvarLaudo(laudo: FileUpload!): String!
+    salvarExame(exame: ExameInput!): Exame! @isLoggedIn(role: "CADASTRAR_EXAME")
+    salvarLaudo(laudo: FileUpload!): String! @isLoggedIn(role: "CADASTRAR_LAUDO")
 }
 
 type Subscription{

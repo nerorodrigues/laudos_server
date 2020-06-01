@@ -1,0 +1,23 @@
+input CompanyInput {
+    id: ID
+    name:String!
+    city: String
+    state:String
+    status: Boolean!
+}
+
+type Company{
+    id: ID!
+    name:String!
+    city: String
+    state:String
+    status: Boolean!
+}
+
+type Query{
+    getCompanies: [Company]! @isLoggedIn(role: "LISTAR_EMPRESA")
+}
+
+type Mutation{
+    saveCompany(company: CompanyInput!):Company! @isLoggedIn(role: "CADASTRAR_EMPRESA")
+}

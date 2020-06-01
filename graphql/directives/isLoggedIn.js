@@ -6,15 +6,17 @@ class IsLoggedIn extends SchemaDirectiveVisitor {
   visitFieldDefinition(field, details) {
     this.ensureFieldsWrapped(details.objectType);
     field._requiredAuthRole = this.args.role;
+    field._requiredAuthSchema = this.args.schema;
   }
 
-  visitSchema(schema){
+  visitSchema(schema) {
     var sch = schema;
   }
 
   visitObject(type) {
     ensureFieldsWrapped(type);
-    type._requiredAuthRole = this.args.requires;
+    type._requiredAuthRole = this.args.role;
+    type._requiredAuthSchema = this.args.schema;
   }
 
   ensureFieldsWrapped(objectType) {
@@ -26,19 +28,16 @@ class IsLoggedIn extends SchemaDirectiveVisitor {
 
       field.resolve = async function (root, args, context, ...rest) {
         var { user, dbClient } = context;
-        const requiredAuth = objectType._requiredAuthRole || field._requiredAuthRole;
-        if (!requiredAuth)
-          return resolve.call(this, root, args, context, ...rest);
 
         if (!user)
           throw new Error("User not Authenticated");
 
-        var user = await dbClient.collection("user").findOne({
-          userName: user.userName
-        });
+        const requiredRole = objectType._requiredAuthRole || field._requiredAuthRole;
 
-        if (user.schema != requiredAuth)
-          throw new Error("Not Authorized.");
+        if (!requiredRole)
+          return resolve.call(this, root, args, context, ...rest);
+        if (!user.schema.roles.find(value => value.name === requiredRole))
+          throw new Error("Usuário não possui permissão para acessar esse recurso.");
         return resolve.call(this, root, args, context, ...rest);
       };
     });

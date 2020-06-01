@@ -4,8 +4,7 @@ const { createServer } = require('http');
 const app_port = process.env.PORT || "3000";
 const launchServer = async(port) => {
     var app = await ConfigServer();
-
-    var server = createServer(app);
+var server = createServer(app);
     return new Promise((resolve, reject) => {
         server.listen(port, err => (err ? reject(err) : resolve({ server, port })));
     })

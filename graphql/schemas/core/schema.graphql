@@ -1,21 +1,21 @@
-directive @isLoggedIn(role: ROLES) on OBJECT | FIELD_DEFINITION | SCHEMA
+directive @isLoggedIn(role: String, schema: String) on OBJECT | FIELD_DEFINITION | SCHEMA
 
-enum ROLES{
-    ADMIN
-    SYSTEM_ADMIN,
-    USER
-}
+# enum ROLES{
+#     ADMIN
+#     SYSTEM_ADMIN,
+#     USER
+# }
 
-type AuthUser{
-    token: String!
-}
+# type AuthUser{
+#     token: String!
+# }
 
-input UserInput {
-    email: String!
-    nome: String!
-}
+# input UserInput {
+#     email: String!
+#     nome: String!
+# }
 
-type User{
-    userName: String!
-    role: ROLES!
-}
+# type User{
+#     userName: String!
+#     role: ROLES!
+# }

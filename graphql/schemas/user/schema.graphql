@@ -1,8 +1,0 @@
-
-type Query{
-    getUser: User!
-}
-
-type Mutation{
-    createUser(user: UserInput!): User!
-}
