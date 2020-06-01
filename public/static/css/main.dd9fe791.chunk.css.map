@@ -1,0 +1,1 @@
+{"version":3,"sources":["app.css"],"names":[],"mappings":"AAAA,KACI,YAAkB,CAClB,6BAA+B,CAC/B,aAAc,CACd,wBACJ","file":"main.dd9fe791.chunk.css","sourcesContent":["body{\r\n    padding: 2rem 2rem; /* 80 20 */\r\n    font-family: Roboto, sans-serif;\r\n    color: #0f3c4b;\r\n    background-color: #efefef;\r\n}"]}
