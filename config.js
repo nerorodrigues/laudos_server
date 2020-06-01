@@ -24,7 +24,7 @@ module.exports = {
         ConfigDownloadEndpoint.configureDownloadService(middleware, db);
 
         middleware.use(express.static(path.join(__dirname, 'public')));
-        middleware.get('/', (req, res) => {
+        middleware.get('/*', (req, res) => {
             res.sendFile(path.join(__dirname, 'public', 'index.html'));
         });
 
