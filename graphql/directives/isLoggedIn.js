@@ -33,10 +33,14 @@ class IsLoggedIn extends SchemaDirectiveVisitor {
           throw new Error("User not Authenticated");
 
         const requiredRole = objectType._requiredAuthRole || field._requiredAuthRole;
+        const requiredSchema = objectType._requiredAuthSchema || field._requiredAuthSchema;
 
-        if (!requiredRole)
+        if (!requiredRole && !requiredSchema)
           return resolve.call(this, root, args, context, ...rest);
-        if (!user.schema.roles.find(value => value.name === requiredRole))
+        if (
+          (requiredRole && requiredSchema && !user.schema.roles.find(value => value.name === requiredRole) && user.schema.name !== requiredSchema) ||
+          requiredRole && !user.schema.roles.find(value => value.name === requiredRole) ||
+          requiredSchema && user.schema.name !== requiredSchema)
           throw new Error("Usuário não possui permissão para acessar esse recurso.");
         return resolve.call(this, root, args, context, ...rest);
       };

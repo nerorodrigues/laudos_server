@@ -2,7 +2,8 @@
 // const os = require('os');
 // const shortid = require('shortid');
 const { GridFSBucket } = require('mongodb');
-const { PubSub } = require('apollo-server-express')
+const { PubSub, withFilter } = require('apollo-server-express');
+const { ObjectID } = require('mongodb');
 
 const pubSub = new PubSub();
 // const { createWriteStream, unlink } = require('fs');
@@ -49,38 +50,86 @@ const pubSub = new PubSub();
 //     return data;
 
 // }
-const getExames = async (companyId, dbClient, getAll) => {
-    var exameCollection = await dbClient.collection('exames');
-    var filter = companyId ? { companyId: companyId } : {};
-    if (exameCollection)
-        return exameCollection.find(filter).map(value => {
-            return {
-                id: value._id,
-                protocolo: value.protocolo,
-                nome: value.nome,
-                dataExame: value.dataExame,
-                dataCadastro: value.dataCadastro,
-                exameUrl: `${process.env.CorsOrigin || 'http://localhost:3001'}/download?id=${value._id}&download=exame`
-            };
-        }).toArray();
-    return;
-}
 
-const LAUDO_SALVO = 'LAUDO_SALVO';
+const SAVED_EXAM = 'SAVED_EXAM';
 
 module.exports = {
     resolver: {
+        ExamsStatus: {
+            WAITING: 0,
+            READY: 1
+        },
         Subscription: {
-            laudoSalvo: {
-                subscribe: async () => await pubSub.asyncIterator([LAUDO_SALVO])
+            savedExam: {
+                subscribe: withFilter(
+                    () => pubSub.asyncIterator([SAVED_EXAM]),
+                    (payload, variables) => variables.id === payload.companyId)
             }
         },
         Query: {
             listarExames: async (root, args, { user, dbClient }, info) => {
-                return getExames(user.companyId, dbClient, false);
+                var filter = { $and: [{ companyId: new ObjectID(user.companyId) }] };
+                if (args.filter.name)
+                    filter = Object.assign({}, filter, {
+                        $and: Object.assign([], filter.$and, [...filter.$and, { name: args.filter.name }])
+                    });
+                if (args.filter.protocolNumber)
+                    filter = Object.assign({}, filter, {
+                        $and: Object.assign([], filter.$and, [...filter.$and, { protocolNumber: args.filter.protocolNumber }])
+                    });
+                if (args.filter.examDate)
+                    filter = Object.assign({}, filter, {
+                        $and: Object.assign([], filter.$and, [...filter.$and, { dataExame: args.filter.examDate }])
+                    });
+                if (args.filter.status.length > 0)
+                    filter = Object.assign({}, filter, {
+                        $and: Object.assign([], filter.$and, [...filter.$and, { status: { $in: args.filter.status } }])
+                    });
+
+                var exameCollection = await dbClient.collection('exames');
+                if (exameCollection)
+                    return exameCollection.find(filter).map(value => {
+                        return {
+                            id: value._id,
+                            protocolo: value.protocolo,
+                            nome: value.nome,
+                            dataExame: value.dataExame,
+                            dataCadastro: value.dataCadastro,
+                            observacoes: value.observacoes,
+                            possuiMarcapasso: value.possuiMarcapasso,
+                            status: value.status,
+                            url: `${process.env.CorsOrigin || 'http://localhost:3000'}/download?id=${value._id}&download=${value.status === 0 ? 'exame' : 'laudo'}`
+                        };
+                    }).toArray();
+                return;
             },
-            listarExamesPorCliente: async (root, args, { dbClient }, info) => {
-                return getExames(args.companyId, dbClient, true);
+            listarExamesPorCliente: async (root, args, { user, dbClient }, info) => {
+                //return getExames(args.companyId, dbClient, true);
+                var exameCollection = await dbClient.collection('exames');
+                var filter = { $and: [{ status: 0 }] };
+                var companies = [args.companyId];
+                if (!args.companyId) {
+                    var companyCollection = await dbClient.collection('company');
+                    companies = await companyCollection.find({ parentId: new ObjectID(user.companyId) }).map(company => company._id).toArray();
+                }
+                filter = Object.assign({}, filter, {
+                    $and: Object.assign([], filter.$and, [...filter.$and, { companyId: { $in: companies } }])
+                });
+                if (exameCollection)
+                    return exameCollection.find(filter).map(value => {
+                        return {
+                            id: value._id,
+                            protocolo: value.protocolo,
+                            nome: value.nome,
+                            dataExame: value.dataExame,
+                            dataCadastro: value.dataCadastro,
+                            observacoes: value.observacoes,
+                            possuiMarcapasso: value.possuiMarcapasso,
+                            status: value.status,
+                            url: `${process.env.CorsOrigin || 'http://localhost:3000'}/download?id=${value._id}&download=${value.status === 0 ? 'exame' : 'laudo'}`
+                        };
+                    }).toArray();
+                return;
             }
         },
         Mutation: {
@@ -98,14 +147,59 @@ module.exports = {
                         protocolo: exame.protocolo,
                         dataExame: exame.dataExame,
                         dataCadastro: new Date().toLocaleString('pt-BR', { day: 'numeric', month: 'numeric', year: 'numeric' }),
-                        clienteId: user.id,
-                        companyId: user.companyId,
+                        clienteId: new ObjectID(user.id),
+                        companyId: new ObjectID(user.companyId),
                         possuiMarcapasso: exame.possuiMarcapasso,
+                        status: 0,
                         observacoes: exame.observacoes
                     });
                 if (result)
+                    try {
+                        await new Promise((resolve, reject) => {
+                            var uploadStream = gridFs.openUploadStreamWithId(result.insertedId, filename);
+                            var stream = createReadStream();
+                            uploadStream.on('finish', resolve);
+
+                            uploadStream.on('error', (error) => {
+                                console.log(error);
+                                reject(error);
+                            });
+                            stream.on('error', (error) => uploadStream.destroy(error));
+
+                            stream.pipe(uploadStream);
+                        });
+                    } catch (error) {
+                        console.log(error);
+                    }
+                var examResult = {
+                    id: result.insertedId,
+                    nome: exame.nome,
+                    protocolo: exame.protocolo,
+                    dataExame: exame.dataExame,
+                    dataCadastro: exame.dataCadastro,
+                    possuiMarcapasso: exame.possuiMarcapasso,
+                    observacoes: exame.observacoes,
+                    status: 0,
+                    url: `${process.env.CorsOrigin || 'http://localhost:3000'}/download?id=${value._id}&download=exame`
+                };
+                pubSub.publish(SAVED_EXAM, {
+                    savedExam: examResult,
+                    companyId: user.companyId,
+                });
+                return examResult;
+            },
+            saveExamResult: async (root, { examResult: { examResultFile, examId } }, { user, dbClient }) => {
+                var exameCollection = dbClient.collection('exames');
+                var { createReadStream, filename, mimetype, encoding } = await examResultFile;
+
+                var gridFsExamResult = new GridFSBucket(dbClient, { bucketName: 'laudos' });
+                var gridFsExam = new GridFSBucket(dbClient, { bucketName: 'exames' });
+
+                var result = await exameCollection.updateOne({ _id: new ObjectID(examId) }, { $set: { status: 1 } });
+                if (result) {
+                    await gridFsExam.delete(new ObjectID(examId));
                     await new Promise((resolve, reject) => {
-                        var uploadStream = gridFs.openUploadStreamWithId(result.insertedId, filename);
+                        var uploadStream = gridFsExamResult.openUploadStreamWithId(new ObjectID(examId), filename);
                         var stream = createReadStream();
                         uploadStream.on('finish', resolve);
 
@@ -117,22 +211,8 @@ module.exports = {
 
                         stream.pipe(uploadStream);
                     });
-                var laudoResult = {
-                    id: result.insertedId,
-                    nome: exame.nome,
-                    protocolo: exame.protocolo,
-                    dataExame: exame.dataExame,
-                    dataCadastro: exame.dataCadastro,
-                    exameUrl: `${process.env.CorsOrigin || 'http://localhost:3001'}/download?id=${result.insertedId}&download=exame`,
-                    laudoUrl: ''
-                };
-                pubSub.publish(LAUDO_SALVO, {
-                    laudoSalvo: laudoResult,
-                    payload: {
-                        laudoSalvo: laudoResult
-                    }
-                });
-                return laudoResult;
+                }
+                return `${process.env.CorsOrigin || 'http://localhost:3000'}/download?id=${examId}&download=laudo`
             }
         }
     }

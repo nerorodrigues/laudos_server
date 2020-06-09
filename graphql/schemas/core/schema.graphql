@@ -1,5 +1,10 @@
 directive @isLoggedIn(role: String, schema: String) on OBJECT | FIELD_DEFINITION | SCHEMA
 
+enum ExamsStatus{
+    WAITING,
+    READY
+}
+
 # enum ROLES{
 #     ADMIN
 #     SYSTEM_ADMIN,

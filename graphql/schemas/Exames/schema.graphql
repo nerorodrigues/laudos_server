@@ -15,29 +15,41 @@ type Exame{
     nome: String!
     dataExame: Date!
     dataCadastro: Date,
-    exameUrl: String,
-    laudoUrl: String,
-    possuiMarcapasso: Boolean
+    url: String,
+    possuiMarcapasso: Boolean,
+    status: ExamsStatus,
     observacoes: String
 }
 
-type Query{
-    listarExames: [Exame] @isLoggedIn(role: "LISTAR_EXAME")
-    listarExamesPorCliente(companyId: ID): [Exame] #@isLoggedIn(role:"LISTAR_EXAME")
+input ExamQuery{
+    status: [ExamsStatus],
+    examDate: Date,
+    protocolNumber: String,
+    name: String,
 }
 
-type File{
-    contentType:String!
-    fileName:String!
-    extension:String!
-    content:String!
+input ExamByCompanyQuery {
+    status: ExamsStatus,
+    dataExame: Date,
+    protocolo: String,
+    companyId: ID
+}
+
+type Query{
+    listarExames(filter: ExamQuery): [Exame] @isLoggedIn(role: "LISTAR_EXAME")
+    listarExamesPorCliente(filter: ExamByCompanyQuery): [Exame] @isLoggedIn(role:"LISTAR_EXAME", schema:"ADMIN")
+}
+
+input ExamResultInput{
+    examResultFile: FileUpload!
+    examId: ID!
 }
 
 type Mutation{
     salvarExame(exame: ExameInput!): Exame! @isLoggedIn(role: "CADASTRAR_EXAME")
-    salvarLaudo(laudo: FileUpload!): String! @isLoggedIn(role: "CADASTRAR_LAUDO")
+    saveExamResult(examResult: ExamResultInput!): String! @isLoggedIn(role: "CADASTRAR_LAUDO")
 }
 
 type Subscription{
-    laudoSalvo(id: ID): Exame!
+    savedExam(id: ID): Exame!
 }
