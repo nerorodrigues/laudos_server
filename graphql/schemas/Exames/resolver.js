@@ -63,7 +63,13 @@ module.exports = {
             savedExam: {
                 subscribe: withFilter(
                     () => pubSub.asyncIterator([SAVED_EXAM]),
-                    (payload, variables) => variables.id === payload.companyId)
+                    (payload, variables) => {
+                        if (!variables.companyId)
+                            return variables.id === payload.companyId
+                        else if (!variables.id)
+                            return variables.companyId === payload.companyParentId
+                        return variables.companyId === payload.companyParentId && variables.id === payload.companyId
+                    })
             }
         },
         Query: {
@@ -185,6 +191,7 @@ module.exports = {
                 pubSub.publish(SAVED_EXAM, {
                     savedExam: examResult,
                     companyId: user.companyId,
+                    companyParentId: user.companyParentId
                 });
                 return examResult;
             },

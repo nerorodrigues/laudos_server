@@ -5,25 +5,6 @@ enum ExamsStatus{
     READY
 }
 
-# enum ROLES{
-#     ADMIN
-#     SYSTEM_ADMIN,
-#     USER
-# }
-
-# type AuthUser{
-#     token: String!
-# }
-
-# input UserInput {
-#     email: String!
-#     nome: String!
-# }
-
-# type User{
-#     userName: String!
-#     role: ROLES!
-# }
 type Subscription{
     test(id: ID) : String
 }
