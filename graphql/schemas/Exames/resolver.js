@@ -180,7 +180,7 @@ module.exports = {
                     possuiMarcapasso: exame.possuiMarcapasso,
                     observacoes: exame.observacoes,
                     status: 0,
-                    url: `${process.env.CorsOrigin || 'http://localhost:3000'}/download?id=${value._id}&download=exame`
+                    url: `${process.env.CorsOrigin || 'http://localhost:3000'}/download?id=${result.insertedId}&download=exame`
                 };
                 pubSub.publish(SAVED_EXAM, {
                     savedExam: examResult,

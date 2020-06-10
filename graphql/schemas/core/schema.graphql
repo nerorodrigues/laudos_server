@@ -24,3 +24,14 @@ enum ExamsStatus{
 #     userName: String!
 #     role: ROLES!
 # }
+type Subscription{
+    test(id: ID) : String
+}
+
+type Mutation{
+    testMutation: String
+}
+
+type Query{
+    test: String
+}
